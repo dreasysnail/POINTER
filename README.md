@@ -1,12 +1,13 @@
 # POINTER
-This repository contains the implementation of the paper: "**POINTER: Constrained Text Generation via Insertion-based Generative Pre-training**"
+This repository contains the implementation of the paper: "[**POINTER: Constrained Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)"
 
+![Screenshot](pointer.png) Figure: Illustration of the generation process (blue arrow) of the proposed POINTER model. At each stage, the module generates either a
+or a special `NOI` token
+for each gap between two existing tokens . The gener- ation stops when all the gaps predict `NOI`. The data preparation process (orange arrow) reverses the above gen- erative process.
 
-![Screenshot](inset.png)
 
 ## Live demo
-The live demo can be found at [here](). Please expect delay and crash as it is running on a single GPU machine. 
-
+The live demo can be found at [here](http://52.247.25.3:8900). Please expect delay and crash as it is running on a single GPU machine. 
 
 
 ## Citation
