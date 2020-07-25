@@ -3,7 +3,7 @@ This repository contains the implementation of the paper: "[**POINTER: Constrain
 
 ![Screenshot](pointer.png) Figure: Illustration of the generation process (blue arrow) of the proposed POINTER model. At each stage, the module generates either a
 or a special `NOI` token
-for each gap between two existing tokens . The gener- ation stops when all the gaps predict `NOI`. The data preparation process (orange arrow) reverses the above gen- erative process.
+for each gap between two existing tokens . The generation stops when all the gaps predict `NOI`. The data preparation process (orange arrow) reverses the above gen- erative process.
 
 
 ## Live demo
