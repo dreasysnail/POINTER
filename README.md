@@ -23,8 +23,8 @@ sudo apt-get install -y make wget gzip bzip2 xz-utils zstd
 ```
 
 ```bash
-conda env create -f LSP-linux.yml -n LSP
-conda activate LSP
+conda env create -f pointer_env.yml -n pointer_env
+conda activate pointer_env
 ```
 
 If you run this on an architecture other than Linux, please use `LSP-generic.yml` instead of `LSP-linux.yml` but please note that the generic one is not tested in all platform, so the stablity can not be gauranteed.
@@ -53,7 +53,7 @@ Run the demo in our repo as
 Please put an `test.key.txt` (see the `input/test.key.txt` in this repo for an example) into the `input` folder of this code, with `\t` seperating the constraints. The generation can be done using following command:
   
 ```bash
-conda activate LSP
+conda activate pointer_env
 python ./code/inference.py \
 --pregenerated_data ./input  \
 --bert_model $model_path \
