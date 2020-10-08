@@ -10,7 +10,7 @@ for each gap between two existing tokens . The generation stops when all the gap
 The live demo can be found at [here](http://52.247.25.3:8900). Please expect delay and crash as it is running on a single GPU machine. 
 
 
-## Generating from pretrained POINTER models
+## POINTER models
 
 
 #### Setup Conda Environment
@@ -40,7 +40,7 @@ tar -xzvf ckpt.tar.gz
 
   
   
-#### Generate from INSET model with your own input
+#### Generate from POINTER model with your own input
 
 
 **Quick start (TL;DR)**:
@@ -60,6 +60,9 @@ python ./code/inference.py \
 --output_dir $result_path \
 ```
 The generation will be at the `$result_path` folder.
+
+
+
 
 ## Citation
 If you use this code in your research, you can cite our [paper](https://arxiv.org/abs/2005.00558):
