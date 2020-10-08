@@ -387,14 +387,14 @@ def main():
                         help="greedy: greedy generation. sample: sampling")
     parser.add_argument('--noi_decay',
                         type=int,
-                        default=3,
+                        default=1,
                         help="round number to decay NOI prob") 
     parser.add_argument('--reduce_decay',
                         type=int,
                         default=1,
                         help="round number to decay reduce prob") 
     parser.add_argument('--verbose', type=int,
-                        default=1,
+                        default=0,
                         help="verbose level") 
     parser.add_argument('--n_test',
                         type=int,
@@ -409,7 +409,8 @@ def main():
                         default=True, 
                         help="reduce stopwords")    
     parser.add_argument('--lessrepeat',
-                        action='store_true',
+                        type=boolean_string, 
+                        default=True, 
                         help="reduce repetition (only for tokenwise)")
     args = parser.parse_args()
 

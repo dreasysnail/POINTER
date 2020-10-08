@@ -63,6 +63,66 @@ The generation will be at the `$result_path` folder.
 
 
 
+#### Data preparation
+
+
+**Keywords extraction**:
+```bash
+python keyword_extraction.py --n_keys 7 --file ./data/yelp_test.txt
+```
+
+**Data generation**:
+```bash
+python ./generate_training_data.py \
+--train_corpus /data/training.dummy.txt \
+--bert_model bert-base-uncased \
+--output_dir ./data/yelp_2000000_processed/ \
+--epochs_to_generate 1 \
+--max_seq_len 256 \
+--num_workers 1 \
+--duplicate_epochs 1 \
+--token_value df-stop \
+--skip 2 \
+--clean  \
+--task_name yelp
+```
+
+
+#### Model training
+
+
+**Dependency requirement**:
+
+Please run `bash ./requirement.sh` to install the dependency required
+
+**Pre-training**:
+Below is an example of pretraining a model on wikipedia
+
+```bash
+python -m torch.distributed.launch  --nproc_per_node 16 training.py \
+--pregenerated_data ./data/wikipedia_processed \
+--bert_model ./models/bert-large-uncased \
+--output_dir ./results/output \
+--epochs 40  \
+--train_batch_size 64 \
+--output_step 100000 \
+--learning_rate 1e-5 
+```
+
+**Fine-tuning**:
+Below is an example of finetuning a model with pretraining model [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D)
+
+```bash
+python -m torch.distributed.launch  --nproc_per_node 16 training.py \
+--pregenerated_data ./data/yelp_processed \
+--bert_model ./model/$WIKI_MODEL \
+--output_dir ./results/output \
+--epochs 40 \
+--train_batch_size 64 \
+--output_step 100000 \
+--learning_rate 1e-5\
+```
+
 
 ## Citation
 If you use this code in your research, you can cite our [paper](https://arxiv.org/abs/2005.00558):
