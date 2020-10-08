@@ -1,9 +1,12 @@
 # POINTER
-This repository contains the implementation of the paper: "[**POINTER: Constrained Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. 
+This repository contains the implementation of the paper: "[**POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. 
 
 ![Screenshot](pointer.png) Figure: Illustration of the generation process (blue arrow) of the proposed POINTER model. At each stage, the module generates either a
 or a special `NOI` token
 for each gap between two existing tokens . The generation stops when all the gaps predict `NOI`. The data preparation process (orange arrow) reverses the above generative process.
+
+![Screenshot](example.png) Figure: Example of the progressive generation process
+
 
 
 ## Live demo
@@ -40,7 +43,7 @@ tar -xzvf ckpt.tar.gz
 
   
   
-#### Generate from POINTER model with your own input
+## Generate from POINTER model with your own input
 
 
 **Quick start (TL;DR)**:
@@ -63,7 +66,7 @@ The generation will be at the `$result_path` folder.
 
 
 
-#### Data preparation
+## Data preparation
 
 
 **Keywords extraction**:
@@ -88,7 +91,7 @@ python ./generate_training_data.py \
 ```
 
 
-#### Model training
+## Model training
 
 
 **Dependency requirement**:
