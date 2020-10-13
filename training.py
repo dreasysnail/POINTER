@@ -239,11 +239,9 @@ def main():
 
     args.train_batch_size = args.train_batch_size // args.gradient_accumulation_steps
 
-    
-    if not args.philly:
-        if args.output_dir.is_dir() and list(args.output_dir.iterdir()):
-            logging.warning(f"Output directory ({args.output_dir}) already exists and is not empty!")
-        args.output_dir.mkdir(parents=True, exist_ok=True)
+    if args.output_dir.is_dir() and list(args.output_dir.iterdir()):
+        logging.warning(f"Output directory ({args.output_dir}) already exists and is not empty!")
+    args.output_dir.mkdir(parents=True, exist_ok=True)
   
     while True:
         try:

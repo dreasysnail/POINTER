@@ -31,8 +31,23 @@ conda activate pointer_env
 ```
 
 If you run this on an architecture other than Linux, please use `LSP-generic.yml` instead of `LSP-linux.yml` but please note that the generic one is not tested in all platform, so the stablity can not be gauranteed.
-  
-#### 
+
+#### Docker environment
+
+To start, first install the docker and Nvidia-docker from their official repos. The image environment for running the code can be loaded as below:
+
+Nvidia-docker v2.*
+
+```bash
+docker run --gpus all --ipc=host --rm -it -v $PWD:/workspace --network=host icaruszyz/large-scale-training:ins_v4 bash
+```
+
+Nvidia-docker v1.*
+```bash
+$ nvidia-docker --rm -it -v $PWD:/workspace --network=host icaruszyz/large-scale-training:ins_v4 bash
+```
+
+#### POINTER model checkpoints 
 
 Link to the model and config files can be downloaded [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D).  
 
@@ -96,7 +111,9 @@ python ./generate_training_data.py \
 
 **Dependency requirement**:
 
-Please run `bash ./requirement.sh` to install the dependency required
+Please run `bash ./requirement.sh` to install the dependency required.
+The `bert-large-uncased` model can be found at [here](https://huggingface.co/bert-large-uncased).
+Please also install apex from https://www.github.com/nvidia/apex to use distributed and fp16 training.
 
 **Pre-training**:
 Below is an example of pretraining a model on wikipedia
