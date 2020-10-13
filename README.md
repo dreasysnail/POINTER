@@ -30,7 +30,7 @@ conda env create -f pointer_env.yml -n pointer_env
 conda activate pointer_env
 ```
 
-If you run this on an architecture other than Linux, please use `LSP-generic.yml` instead of `LSP-linux.yml` but please note that the generic one is not tested in all platform, so the stablity can not be gauranteed.
+
 
 #### Docker environment
 
