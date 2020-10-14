@@ -9,11 +9,9 @@ for each gap between two existing tokens . The generation stops when all the gap
 
 
 
-## Live demo
+## LIVE DEMO
 The live demo can be found at [here](http://52.247.25.3:8900). Please expect delay and crash as it is running on a single GPU machine. 
 
-
-## POINTER models
 
 
 #### Setup Conda Environment
@@ -47,7 +45,7 @@ Nvidia-docker v1.*
 $ nvidia-docker --rm -it -v $PWD:/workspace --network=host icaruszyz/large-scale-training:ins_v4 bash
 ```
 
-#### POINTER model checkpoints 
+## POINTER model checkpoints 
 
 Link to the model and config files can be downloaded [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D).  
 
