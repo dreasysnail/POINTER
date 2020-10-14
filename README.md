@@ -1,5 +1,5 @@
 # POINTER
-This repository contains the implementation of the paper: "[**POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. 
+This repository contains the implementation of the EMNLP 2020 paper: "[**POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. 
 
 ![Screenshot](pointer.png) Figure: Illustration of the generation process (blue arrow) of the proposed POINTER model. At each stage, the module generates either a
 or a special `NOI` token
@@ -72,8 +72,8 @@ Please put an `test.key.txt` (see the `input/test.key.txt` in this repo for an e
   
 ```bash
 conda activate pointer_env
-python ./code/inference.py \
---pregenerated_data ./input  \
+python inference.py \
+--keyfile ./input/test.key.txt  \
 --bert_model $model_path \
 --output_dir $result_path \
 ```
@@ -84,23 +84,12 @@ The generation will be at the `$result_path` folder.
 ## Data preparation
 
 
-**Keywords extraction**:
-```bash
-python keyword_extraction.py --n_keys 7 --file ./data/yelp_test.txt
-```
-
 **Data generation**:
 ```bash
 python ./generate_training_data.py \
 --train_corpus /data/training.dummy.txt \
 --bert_model bert-base-uncased \
---output_dir ./data/yelp_2000000_processed/ \
---epochs_to_generate 1 \
---max_seq_len 256 \
---num_workers 1 \
---duplicate_epochs 1 \
---token_value df-stop \
---skip 2 \
+--output_dir ./data/yelp_processed/ \
 --clean  \
 --task_name yelp
 ```
@@ -122,7 +111,7 @@ Below is an example of pretraining a model on wikipedia
 python -m torch.distributed.launch  --nproc_per_node 16 training.py \
 --pregenerated_data ./data/wikipedia_processed \
 --bert_model ./models/bert-large-uncased \
---output_dir ./results/output \
+--output_dir $WIKI_MODEL \
 --epochs 40  \
 --train_batch_size 64 \
 --output_step 100000 \
@@ -130,27 +119,49 @@ python -m torch.distributed.launch  --nproc_per_node 16 training.py \
 ```
 
 **Fine-tuning**:
-Below is an example of finetuning a model with pretraining model [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D)
+Below is an example of finetuning a model with pretraining model ($WIKI_MODEL) [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D)
 
 ```bash
 python -m torch.distributed.launch  --nproc_per_node 16 training.py \
 --pregenerated_data ./data/yelp_processed \
---bert_model ./model/$WIKI_MODEL \
---output_dir ./results/output \
+--bert_model $WIKI_MODEL \
+--output_dir $finetune_model_path \
 --epochs 40 \
 --train_batch_size 64 \
 --output_step 100000 \
 --learning_rate 1e-5\
 ```
 
+## Model decoding
+
+
+**Keywords extraction**:
+First, you can use the following script to generate a bunch of keywords for the test file. 
+```bash
+python keyword_extraction.py \
+--n_keys 7 \
+--file ./data/yelp_test.txt
+```
+The keywords file will be saved in the same folder as the input file (in this example, the keywords file will be `./data/yelp_test.key.txt`)
+
+**Generating from the keywords**
+With the trained model, you can generate a sentence from a give keywords file. The keywords file can be obtained by the previous keywords extraction step, or by a custom user input file. The following commands show an example of how to decode from the keywords file generated from last step:
+```bash
+python inference.py \
+--keyfile ./data/yelp_test.key.txt  \
+--bert_model $finetune_model_path \
+--output_dir $result_path 
+```
+NOTE THAT the input keywords file will be tokenized by a BERT tokenizer. A less common word will likely be parsed into subwords, for example, `cheesecake` will be split into `cheese`, `##cake`. As a result the final generation may not contain the whole word `cheesecake`. This can be easily fixed by not letting the model to generate things before a subword token (start with `##`), however in the current version we haven't implemented such a feature.  
+
 
 ## Citation
 If you use this code in your research, you can cite our [paper](https://arxiv.org/abs/2005.00558):
 ```bash
-@article{zhang2020pointer,
-  title={POINTER: Constrained Text Generation via Insertion-based Generative Pre-training},
+@inproceedings{zhang2020pointer,
+  title={POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training},
   author={Zhang, Yizhe and Wang, Guoyin and Li, Chunyuan and Gan, Zhe and Brockett, Chris and Dolan, Bill},
-  journal={arXiv preprint arXiv:2005.00558},
+  booktitle={EMNLP},
   year={2020}
 }
 ```

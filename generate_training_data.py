@@ -374,11 +374,11 @@ def main():
 
     parser.add_argument("--num_workers", type=int, default=1,
                         help="The number of workers to use to write the files")
-    parser.add_argument("--epochs_to_generate", type=int, default=3,
+    parser.add_argument("--epochs_to_generate", type=int, default=1,
                         help="Number of epochs of data to pregenerate")
-    parser.add_argument("--duplicate_epochs", type=int, default=3,
+    parser.add_argument("--duplicate_epochs", type=int, default=1,
                         help="Number of epochs of data to pregenerate")
-    parser.add_argument("--max_seq_len", type=int, default=128)
+    parser.add_argument("--max_seq_len", type=int, default=256)
     parser.add_argument("--short_seq_prob", type=float, default=0.1,
                         help="Probability of making a short sentence as a training example")
     parser.add_argument("--masked_lm_prob", type=float, default=0.15,
@@ -387,7 +387,7 @@ def main():
                         help="Maximum number of tokens to mask in each sequence")
     parser.add_argument("--task_name", type=str, default='',
                         help="Dataset name")
-    parser.add_argument("--token_value", type=str, default='idf',
+    parser.add_argument("--token_value", type=str, default='df-stop',
                         help="Dataset name")
     parser.add_argument("--wp", type=bool, default=False, help="if train on wp")
     parser.add_argument("--max_line", type=int, default=None, help="maximum lines to process")

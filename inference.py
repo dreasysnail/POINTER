@@ -18,7 +18,7 @@ from pytorch_transformers.modeling_bert import BertForPreTraining
 from pytorch_transformers.tokenization_bert import BertTokenizer
 from pytorch_transformers.optimization import AdamW, WarmupLinearSchedule
 import torch.nn.functional as F
-from util import MAX_TURN, PREVENT_FACTOR, PROMOTE_FACTOR, PREVENT_LIST, boolean_string
+from util import MAX_TURN, PREVENT_FACTOR, PROMOTE_FACTOR, PREVENT_LIST, REDUCE_LIST, STOP_LIST, boolean_string
 
 
 InputFeatures = namedtuple("InputFeatures", "input_ids input_mask segment_ids lm_label_ids ")
@@ -79,8 +79,9 @@ class PregeneratedDataset(Dataset):
         self.tokenizer = tokenizer
         self.epoch = epoch
         self.data_epoch = epoch % num_data_epochs
-        data_file = training_path / f"test.key.txt"
-        num_samples = 1000
+        data_file = training_path
+        num_samples = sum(1 for line in open(data_file))
+        self.num_samples = num_samples
         seq_len = 256
         self.temp_dir = None
         self.working_dir = None
@@ -349,14 +350,14 @@ def sample_generate(model, input_ids, segment_ids, input_mask, device='cuda', te
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('--pregenerated_data', type=Path, required=True)
+    parser.add_argument('--keyfile', type=Path, required=True)
     parser.add_argument('--output_dir', type=Path, required=False, default=None)
     parser.add_argument("--bert_model", type=str, required=True, help="Bert pre-trained model selected in the list: bert-base-uncased, "
                              "bert-large-uncased, bert-base-cased, bert-base-multilingual, bert-base-chinese.")
     parser.add_argument("--do_lower_case", 
                         type=boolean_string, 
                         default=False, 
-                        action="store_true")
+                        )
     parser.add_argument("--reduce_memory",                        
                         type=boolean_string, 
                         default=False, 
@@ -414,15 +415,12 @@ def main():
                         help="reduce repetition (only for tokenwise)")
     args = parser.parse_args()
 
-    assert args.pregenerated_data.is_dir(), \
-        "--pregenerated_data should point to the folder of files made by pregenerate_training_data.py!"
 
 
     if not args.output_dir:
         args.output_dir = args.bert_model
 
-    epoch_file = args.pregenerated_data / f"test.key.txt"
-    total_examples = 1000
+    epoch_file = args.keyfile
     args.max_seq_length = 256
     
     # Setup CUDA, GPU & distributed training
@@ -465,27 +463,28 @@ def main():
     model.to(device)
     model.eval()
 
-    print(args)
+    print(args)    
 
-    logging.info("***** Running generation *****")
-    logging.info(f"  Num examples = {total_examples}")
-    logging.info("  Batch size = %d", args.batch_size)
-    
-
-    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.pregenerated_data, tokenizer=tokenizer, num_data_epochs=1)
+    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.keyfile, tokenizer=tokenizer, num_data_epochs=1)
     epoch_sampler = SequentialSampler(epoch_dataset)
     generate_dataloader = DataLoader(epoch_dataset, sampler=epoch_sampler,batch_size=args.batch_size)
     file_name = os.path.join(args.output_dir, f"{args.type}.txt")
     f = open(file_name, "w", 1)
-    print(file_name)
+
+
+    logging.info("***** Running generation *****")
+    logging.info(f"  Num examples = {epoch_dataset.num_samples}")
+    logging.info("  Batch size = %d", args.batch_size)
+    logging.info(f"  Save to {file_name}")
 
 
     prevent = [ tokenizer.vocab.get(x) for x in PREVENT_LIST] if args.prevent else None
     if args.reduce_stop:
-        REDUCE_LIST = REDUCE_LIST |  STOP_LIST
+        # import pdb; pdb.set_trace()
+        reduce_l = REDUCE_LIST |  STOP_LIST
     reduce = None
     if args.prevent:
-        reduce = [ tokenizer.vocab.get(x) for x in reduce_list]  
+        reduce = [ tokenizer.vocab.get(x) for x in reduce_l]  
         reduce = [s for s in reduce if s]
 
 
@@ -493,7 +492,6 @@ def main():
         for step, batch in enumerate(generate_dataloader):
             batch = tuple(t.to(device) for t in batch)
             input_ids, input_mask, segment_ids, lm_label_ids = batch
-            pdb.set_trace()
             if args.type == "greedy":
                 predict_ids = greedy_search(model, input_ids, segment_ids, input_mask, args=args, tokenizer=tokenizer, prevent=prevent, reduce= reduce)
             elif args.type == 'sampling':
