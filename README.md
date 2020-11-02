@@ -1,5 +1,5 @@
 # POINTER
-This repository contains the implementation of the EMNLP 2020 paper: "[**POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. 
+This repository contains the implementation of the EMNLP 2020 paper: "[**POINTER: Constrained Progressive Text Generation via Insertion-based Generative Pre-training**](https://arxiv.org/abs/2005.00558)", a progressive and non-autoregressive text generation pre-training approach. POINTER generates fluent text in a progressive and parallel manner. With empirical logarithmic time, POINTER outperforms existing non-autoregressive text generation approaches in hard-constrained text generation.
 
 ![Screenshot](pointer.png) Figure: Illustration of the generation process (blue arrow) of the proposed POINTER model. At each stage, the module generates either a
 or a special `NOI` token
