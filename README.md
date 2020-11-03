@@ -22,6 +22,18 @@ Please use the below commandlines to clone, install the requirements and load th
 ```bash
 sudo apt-get install -y make wget gzip bzip2 xz-utils zstd
 ```
+We provide 3 ways to setup the python environments:
+1. (Recommend) you can directly install the packages by running
+
+```bash
+bash env_setup.sh
+```
+2. or you can copy the exact same environment setup from us
+
+```bash
+conda create --prefix /pointer_env --file pointer-spec-file.txt
+```
+3. or using yaml file to reproduce the environment
 
 ```bash
 conda env create -f pointer_env.yml -n pointer_env
@@ -85,7 +97,7 @@ The generation will be at the `$result_path` folder.
 **Data generation**:
 ```bash
 python ./generate_training_data.py \
---train_corpus /data/training.dummy.txt \
+--train_corpus ./data/training.dummy.txt \
 --bert_model bert-base-uncased \
 --output_dir ./data/yelp_processed/ \
 --clean  \
@@ -108,7 +120,7 @@ Below is an example of pretraining a model on wikipedia
 ```bash
 python -m torch.distributed.launch  --nproc_per_node 16 training.py \
 --pregenerated_data ./data/wikipedia_processed \
---bert_model ./models/bert-large-uncased \
+--bert_model bert-large-uncased \
 --output_dir $WIKI_MODEL \
 --epochs 40  \
 --train_batch_size 64 \
