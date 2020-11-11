@@ -59,7 +59,12 @@ $ nvidia-docker --rm -it -v $PWD:/workspace --network=host icaruszyz/large-scale
 
 ## POINTER model checkpoints 
 
-Link to the model and config files can be downloaded [here](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D).  
+Link to the model and config files can be downloaded as follows
+
+| Model           |  Download link
+|----------------------|--------|
+| Wiki pretrained model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D)  | 
+| Restaurant review fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/models/yelp_345M.tar.gz?sv=2019-10-10&st=2020-11-11T06%3A39%3A02Z&se=2025-11-12T06%3A39%3A00Z&sr=b&sp=r&sig=HVvubz7VHzzspU5VlXKI5H5nsi96ffxWUsSHVnG0yrw%3D)  | 
 
 To continue, please decompress the file and move the `ckpt` folder into the main directory of this repo
 ```bash
