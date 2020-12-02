@@ -57,6 +57,17 @@ Nvidia-docker v1.*
 $ nvidia-docker --rm -it -v $PWD:/workspace --network=host icaruszyz/large-scale-training:ins_v4 bash
 ```
 
+## Rawdata 
+
+
+Link to the data files can be downloaded as follows
+
+| Dataset         |  Download link
+|----------------------|--------|
+| News| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/data/news/news_data.txt?sv=2019-10-10&st=2020-12-02T18%3A27%3A04Z&se=2030-12-03T18%3A27%3A00Z&sr=b&sp=r&sig=XfWYtYF8W8fFgbkJM1mrdLpb%2FoRJwQu5DTSaWrYv5yY%3D)  | 
+| Restaurant review| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/data/yelp/yelp_160000.txt?sv=2019-10-10&st=2020-12-02T18%3A29%3A28Z&se=2020-12-03T18%3A29%3A28Z&sr=b&sp=r&sig=PtkfjtUk1HZFzRL%2B7RAM%2BpArJz71%2Fie2VHYxk4NMjnU%3D)  | 
+
+
 ## POINTER model checkpoints 
 
 Link to the model and config files can be downloaded as follows
