@@ -75,7 +75,7 @@ Link to the model and config files can be downloaded as follows (345M models)
 | Model           |  Download link
 |----------------------|--------|
 | Wiki pretrained model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/wiki.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A40%3A57Z&se=2030-03-11T20%3A40%3A00Z&sr=b&sp=r&sig=oYI%2BKrj5wqeFV5jAF6EY15P8%2BtNGI%2F7FIOEox08QFDY%3D)  | 
-| Restaurant review fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/hotel.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A38%3A14Z&se=2030-03-11T20%3A38%3A00Z&sr=b&sp=r&sig=iwsyLV0Fj4nlv5mAJafWslD2ubPQcCw4LvnN62dgSTU%3D)  | 
+| Restaurant review fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/yelp.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A42%3A52Z&se=2030-03-11T20%3A42%3A00Z&sr=b&sp=r&sig=AEs%2F9hdWCde1D1RpPY9HVxc8ONBm%2B1P%2BhlbFSyPT%2Frc%3D)  | 
 | News fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/news.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A40%3A19Z&se=2030-03-11T20%3A40%3A00Z&sr=b&sp=r&sig=EPJ6WRchq0b3oEvrwlS0dnxFgJ5wjpgaJRl9kCUKSs4%3D)  | 
 
 To continue, please decompress the file and move the `ckpt` folder into the main directory of this repo
