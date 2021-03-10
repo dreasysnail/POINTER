@@ -70,12 +70,13 @@ Link to the data files can be downloaded as follows
 
 ## POINTER model checkpoints 
 
-Link to the model and config files can be downloaded as follows
+Link to the model and config files can be downloaded as follows (345M models)
 
 | Model           |  Download link
 |----------------------|--------|
-| Wiki pretrained model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt.tar.gz?st=2020-08-18T20%3A49%3A02Z&se=2024-01-16T20%3A49%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=PKrSJt38cmY0P%2FBcZuyK%2Btm3bXyYzzfazaqTu1%2F%2FDtc%3D)  | 
-| Restaurant review fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/data/yelp/yelp_160000.txt?sv=2019-10-10&st=2020-12-02T18%3A30%3A40Z&se=2030-12-03T18%3A30%3A00Z&sr=b&sp=r&sig=YovKBtSJuyRRQqMS94CDluLkvlNRtWG8u4YDXwM4XsY%3D)  | 
+| Wiki pretrained model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/wiki.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A40%3A57Z&se=2030-03-11T20%3A40%3A00Z&sr=b&sp=r&sig=oYI%2BKrj5wqeFV5jAF6EY15P8%2BtNGI%2F7FIOEox08QFDY%3D)  | 
+| Restaurant review fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/hotel.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A38%3A14Z&se=2030-03-11T20%3A38%3A00Z&sr=b&sp=r&sig=iwsyLV0Fj4nlv5mAJafWslD2ubPQcCw4LvnN62dgSTU%3D)  | 
+| News fine-tuned model| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/ckpt/news.tar.gz?sv=2019-10-10&st=2021-03-10T21%3A40%3A19Z&se=2030-03-11T20%3A40%3A00Z&sr=b&sp=r&sig=EPJ6WRchq0b3oEvrwlS0dnxFgJ5wjpgaJRl9kCUKSs4%3D)  | 
 
 To continue, please decompress the file and move the `ckpt` folder into the main directory of this repo
 ```bash
