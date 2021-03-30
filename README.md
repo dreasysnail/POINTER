@@ -8,6 +8,9 @@ for each gap between two existing tokens . The generation stops when all the gap
 ![Screenshot](example.png) Figure: Example of the progressive generation process
 
 
+## News 
+**\[Major Update 03/29/2021\]** The inference function and live demo now support phrases and short sentences as lexical constraints. When performing [inference] (https://github.com/dreasysnail/POINTER#model-decoding), an additional "--sep" command can be added to specific the a user-specific separating token such as ";", to identify the boundries of the constraints. 
+
 
 ## Live demo
 The live demo can be found at [here](http://52.247.25.3:8900). Please expect delay and crash as it is running on a single GPU machine. 

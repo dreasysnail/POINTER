@@ -9,6 +9,7 @@ import numpy as np
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 
+
 from torch.utils.data import DataLoader, Dataset, RandomSampler, Sampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm
@@ -21,13 +22,13 @@ import torch.nn.functional as F
 from util import MAX_TURN, PREVENT_FACTOR, PROMOTE_FACTOR, PREVENT_LIST, REDUCE_LIST, STOP_LIST, boolean_string
 
 
-InputFeatures = namedtuple("InputFeatures", "input_ids input_mask segment_ids lm_label_ids ")
+InputFeatures = namedtuple("InputFeatures", "input_ids input_mask segment_ids lm_label_ids no_ins")
 
 log_format = '%(asctime)-10s: %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_format)
 
 logger = logging.getLogger(__name__)
-
+NOI_ID = 1
 class Node(object):
     def __init__(self, input_ids, segment_ids, input_mask, score, shift, length, pos_start, input_len_start):
         super(Node, self).__init__()
@@ -49,10 +50,18 @@ def set_seed(args):
 
 
 def convert_example_to_features(example, tokenizer, max_seq_length, tokenizing = False):
-    tokens = ["[CLS]"] + example
-    
+    tokens = ["[CLS]"] + example   
+
+    no_ins = []
     if tokenizing:
-        input_ids = tokenizer.encode(" ".join(tokens))
+        #input_ids = tokenizer.encode(" ".join(tokens))
+        input_ids = [x for t in tokens for x in tokenizer.encode(t)]
+        input_ids_lens = [len(tokenizer.encode(t)) for t in tokens]
+        cur = 0
+        for l in input_ids_lens:
+            if l >=2 :
+                no_ins.extend([cur + x for x in range(0,l-1)])
+            cur += l
     else:
         input_ids = tokenizer.convert_tokens_to_ids(tokens)
 
@@ -66,15 +75,20 @@ def convert_example_to_features(example, tokenizer, max_seq_length, tokenizing =
 
     lm_label_array = np.full(max_seq_length, dtype=np.int, fill_value=-1)
 
+    no_ins_array = np.full(max_seq_length, dtype=np.int, fill_value=-1)
+
+    no_ins_array[:len(no_ins)] = no_ins
+
     features = InputFeatures(input_ids=input_array,
                              input_mask=mask_array,
                              segment_ids=segment_array,
                              lm_label_ids=lm_label_array,
+                             no_ins=no_ins_array,
                              )
     return features
 
 class PregeneratedDataset(Dataset):
-    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, reduce_memory=False):
+    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, sep=" ", reduce_memory=False):
         self.vocab = tokenizer.vocab
         self.tokenizer = tokenizer
         self.epoch = epoch
@@ -96,12 +110,15 @@ class PregeneratedDataset(Dataset):
                                     shape=(num_samples, seq_len), mode='w+', dtype=np.bool)
             lm_label_ids = np.memmap(filename=self.working_dir/'lm_label_ids.memmap',
                                      shape=(num_samples, seq_len), mode='w+', dtype=np.int32)
+            no_ins = np.memmap(filename=self.working_dir/'no_ins.memmap',
+                                     shape=(num_samples, seq_len), mode='w+', dtype=np.int32)
             lm_label_ids[:] = -1
         else:
             input_ids = np.zeros(shape=(num_samples, seq_len), dtype=np.int32)
             input_masks = np.zeros(shape=(num_samples, seq_len), dtype=np.bool)
             segment_ids = np.zeros(shape=(num_samples, seq_len), dtype=np.bool)
             lm_label_ids = np.full(shape=(num_samples, seq_len), dtype=np.int32, fill_value=-1)
+            no_ins =  np.full(shape=(num_samples, seq_len), dtype=np.int32, fill_value=-1)
             
         logging.info(f"Loading training examples for epoch {epoch}")
         with data_file.open() as f:
@@ -109,12 +126,13 @@ class PregeneratedDataset(Dataset):
                 if i >= num_samples:
                     break
                 line = line.strip()
-                example = line.split()
-                features = convert_example_to_features(example, tokenizer, seq_len)
+                example = [s.lstrip().strip() for s in line.split(sep)]
+                features = convert_example_to_features(example, tokenizer, seq_len, tokenizing=True)
                 input_ids[i] = features.input_ids
                 segment_ids[i] = features.segment_ids
                 input_masks[i] = features.input_mask
                 lm_label_ids[i] = features.lm_label_ids
+                no_ins[i] = features.no_ins
         if i != num_samples - 1:
             logging.info("i={} not equal to num_samples={}".format(i, num_samples))
         logging.info("Loading complete!")
@@ -124,6 +142,8 @@ class PregeneratedDataset(Dataset):
         self.input_masks = input_masks
         self.segment_ids = segment_ids
         self.lm_label_ids = lm_label_ids
+        self.no_ins = no_ins
+
 
     def __len__(self):
         return self.num_samples
@@ -133,6 +153,7 @@ class PregeneratedDataset(Dataset):
                 torch.tensor(self.input_masks[item].astype(np.int64)),
                 torch.tensor(self.segment_ids[item].astype(np.int64)),
                 torch.tensor(self.lm_label_ids[item].astype(np.int64)),
+                torch.tensor(self.no_ins[item].astype(np.int64)),
                 )
 
 
@@ -170,7 +191,7 @@ def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')
     return logits
 
 
-def greedy_search(model, input_ids, segment_ids, input_mask, device='cuda', temperature=1.0, args=None, tokenizer=None, prevent=None, promote=None, reduce=None, verbose = None):
+def greedy_search(model, input_ids, segment_ids, input_mask, no_ins = None, device='cuda', temperature=1.0, args=None, tokenizer=None, prevent=None, promote=None, reduce=None, verbose = None):
     # print("greedy generation")
     if not verbose:
         verbose = args.verbose
@@ -178,6 +199,8 @@ def greedy_search(model, input_ids, segment_ids, input_mask, device='cuda', temp
     zero_ids = [ tokenizer.vocab.get(x) for x in zero_list]
     if verbose >0:
         print("\nInput %s" % (" ".join([str(tokenizer.ids_to_tokens.get(x, "noa").encode('ascii', 'ignore').decode('ascii')) for x in input_ids[0].detach().cpu().numpy() if x!=0])))
+
+    no_ins_cur = no_ins[0][:(no_ins[0]==-1).nonzero()[0]]
     for ip in range(MAX_TURN):
         with torch.no_grad():
             result= model(input_ids, segment_ids, input_mask)
@@ -222,6 +245,10 @@ def greedy_search(model, input_ids, segment_ids, input_mask, device='cuda', temp
             j = 0
             k = 0
             sep_tok = tokenizer.vocab['[SEP]']
+            # update no_ins
+            mask_predicts[0][no_ins_cur] = NOI_ID #
+            new_no_ins_cur = no_ins_cur.clone().detach()
+            # [tokenizer.decode([x.tolist()]) for x in input_ids[0] if x!= 0]
             while np.max([i,j,k]) < args.max_seq_length-1:
                 input_ids_new[0,k] = input_ids[0,i]
                 if input_ids[0,i] == 0: # padding, ignore prediction
@@ -231,15 +258,20 @@ def greedy_search(model, input_ids, segment_ids, input_mask, device='cuda', temp
                 i += 1
                 k += 1
 
-                if mask_predicts[0,j].cpu().numpy() != 1:
+                if mask_predicts[0,j].cpu().numpy() != NOI_ID:
                     input_ids_new[0,k] = mask_predicts[0,j]
                     logit_new[0,k] = probs[0,j,mask_predicts[0,j]]
-                    top_predicts_new[0,k,:] = top_predicts[0,j,:]    
+                    top_predicts_new[0,k,:] = top_predicts[0,j,:]  
+                    if len(no_ins_cur)> 0 and no_ins_cur[-1] > j:
+                        new_no_ins_cur[torch.where(no_ins_cur > j)[0][0]:] += 1
                     k+=1
                     j+=1
+                    
+
                 else:
                     j+=1
-            
+
+            no_ins_cur = new_no_ins_cur    
             mask_pos = input_ids_new > 1
             input_ids = input_ids_new
             input_mask = mask_pos
@@ -256,13 +288,14 @@ def greedy_search(model, input_ids, segment_ids, input_mask, device='cuda', temp
                 print("Round %d: %s" % (ip, " ".join([str(tokenizer.ids_to_tokens.get(x, "noa").encode('ascii', 'ignore').decode('ascii')) for x in input_ids[0].detach().cpu().numpy() if x!=0])))
     return input_ids
 
-def sample_generate(model, input_ids, segment_ids, input_mask, device='cuda', temperature=1.0, args=None, tokenizer=None, sample_num=1, top_k=10, top_p=0.9, prevent=None, promote=None, reduce=None, verbose = None):
+def sample_generate(model, input_ids, segment_ids, input_mask, no_ins = None, device='cuda', temperature=1.0, args=None, tokenizer=None, sample_num=1, top_k=10, top_p=0.9, prevent=None, promote=None, reduce=None, verbose = None):
     if not verbose:
         verbose = args.verbose
     zero_list = ["[", "]", "(", ")"]
     zero_ids = [ tokenizer.vocab.get(x) for x in zero_list]
     if verbose>0:
         print("\nInput %s" % (" ".join([str(tokenizer.ids_to_tokens.get(x, "noa").encode('ascii', 'ignore').decode('ascii')) for x in input_ids[0].detach().cpu().numpy() if x!=0])))
+    no_ins_cur = no_ins[0][:(no_ins[0]==-1).nonzero()[0]]
     for ip in range(MAX_TURN):
         with torch.no_grad():
             result= model(input_ids, segment_ids, input_mask)
@@ -309,6 +342,9 @@ def sample_generate(model, input_ids, segment_ids, input_mask, device='cuda', te
             j = 0
             k = 0
             sep_tok = tokenizer.vocab['[SEP]']
+            # update no_ins
+            mask_predicts[0][no_ins_cur] = NOI_ID #
+            new_no_ins_cur = no_ins_cur.clone().detach()
             while np.max([i,j,k]) < args.max_seq_length-1:
                 # print(i,j,k)
                 input_ids_new[0,k] = input_ids[0,i]
@@ -316,18 +352,22 @@ def sample_generate(model, input_ids, segment_ids, input_mask, device='cuda', te
                     break
                 if input_ids[0,i] == sep_tok:
                     break
+                
                 i += 1
                 k += 1
 
                 if mask_predicts[0,j].cpu().numpy() != 1:
                     input_ids_new[0,k] = mask_predicts[0,j]
                     logit_new[0,k] = probs[0,j,mask_predicts[0,j]]
-                    top_predicts_new[0,k,:] = top_predicts[0,j,:]                    
+                    top_predicts_new[0,k,:] = top_predicts[0,j,:]   
+                    if len(no_ins_cur)> 0 and no_ins_cur[-1] > j:
+                        new_no_ins_cur[torch.where(no_ins_cur > j)[0][0]:] += 1                 
                     k+=1
                     j+=1
                 else:
                     j+=1
             
+            no_ins_cur = new_no_ins_cur 
             mask_pos = input_ids_new > 1
             input_ids = input_ids_new
             input_mask = mask_pos
@@ -413,6 +453,8 @@ def main():
                         type=boolean_string, 
                         default=True, 
                         help="reduce repetition (only for tokenwise)")
+    parser.add_argument('--sep',
+                         type=str, default=" ", help="token to seperate keywords")
     args = parser.parse_args()
 
 
@@ -465,7 +507,7 @@ def main():
 
     print(args)    
 
-    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.keyfile, tokenizer=tokenizer, num_data_epochs=1)
+    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.keyfile, tokenizer=tokenizer, sep=args.sep, num_data_epochs=1)
     epoch_sampler = SequentialSampler(epoch_dataset)
     generate_dataloader = DataLoader(epoch_dataset, sampler=epoch_sampler,batch_size=args.batch_size)
     file_name = os.path.join(args.output_dir, f"{args.type}.txt")
@@ -491,11 +533,11 @@ def main():
     with tqdm(total=len(generate_dataloader), desc=f"Epoch {0}") as pbar:
         for step, batch in enumerate(generate_dataloader):
             batch = tuple(t.to(device) for t in batch)
-            input_ids, input_mask, segment_ids, lm_label_ids = batch
+            input_ids, input_mask, segment_ids, lm_label_ids, no_ins = batch
             if args.type == "greedy":
-                predict_ids = greedy_search(model, input_ids, segment_ids, input_mask, args=args, tokenizer=tokenizer, prevent=prevent, reduce= reduce)
+                predict_ids = greedy_search(model, input_ids, segment_ids, input_mask, no_ins = no_ins, args=args, tokenizer=tokenizer, prevent=prevent, reduce= reduce)
             elif args.type == 'sampling':
-                predict_ids = sample_generate(model, input_ids, segment_ids, input_mask, temperature=0.8, args=args, tokenizer=tokenizer, prevent=prevent, reduce= reduce)
+                predict_ids = sample_generate(model, input_ids, segment_ids, input_mask, no_ins = no_ins, temperature=0.8, args=args, tokenizer=tokenizer, prevent=prevent, reduce= reduce)
             else:
                 raise NotImplementedError
             output =  " ".join([str(tokenizer.ids_to_tokens.get(x, "noa").encode('ascii', 'ignore').decode('ascii')) for x in predict_ids[0].detach().cpu().numpy() if x!=sep_tok and x != pad_tok and x != cls_tok]) + "\n" 
