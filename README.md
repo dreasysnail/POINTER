@@ -9,7 +9,7 @@ for each gap between two existing tokens . The generation stops when all the gap
 
 
 ## News 
-**\[Major Update 03/29/2021\]** The inference function and live demo now support phrases and short sentences as lexical constraints. When performing [inference] (https://github.com/dreasysnail/POINTER#model-decoding), an additional "--sep" command can be added to specific the a user-specific separating token such as ";", to identify the boundries of the constraints. 
+**\[Major Update 03/29/2021\]** The inference function and live demo now support phrases and short sentences as lexical constraints. When performing [inference](https://github.com/dreasysnail/POINTER#model-decoding), an additional "--sep" command can be added to specific the a user-specific separating token such as ";", to identify the boundries of the constraints. 
 
 
 ## LIVE DEMO
