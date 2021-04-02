@@ -49,10 +49,13 @@ def set_seed(args):
         torch.cuda.manual_seed_all(args.seed)
 
 
-def convert_example_to_features(example, tokenizer, max_seq_length, tokenizing = False):
-    tokens = ["[CLS]"] + example   
+def convert_example_to_features(example, tokenizer, max_seq_length, id = 0, no_ins_at_first = False, tokenizing = False):
+    tokens = ["[CLS]"] + example  
+    if len([x for t in tokens for x in tokenizer.encode(t)]) > max_seq_length:
+        logging.info(f"Warning: input id-{id} exceeds max sequence length limit!")
+        tokens = ["[CLS]"] + ["Error : Input exceeds length limit;"]
 
-    no_ins = []
+    no_ins = [0] if no_ins_at_first else []
     if tokenizing:
         #input_ids = tokenizer.encode(" ".join(tokens))
         input_ids = [x for t in tokens for x in tokenizer.encode(t)]
@@ -88,7 +91,7 @@ def convert_example_to_features(example, tokenizer, max_seq_length, tokenizing =
     return features
 
 class PregeneratedDataset(Dataset):
-    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, sep=" ", reduce_memory=False):
+    def __init__(self, training_path, epoch, tokenizer, num_data_epochs, max_seq_len = 256, sep=" ", no_ins_at_first = False, reduce_memory=False):
         self.vocab = tokenizer.vocab
         self.tokenizer = tokenizer
         self.epoch = epoch
@@ -96,7 +99,7 @@ class PregeneratedDataset(Dataset):
         data_file = training_path
         num_samples = sum(1 for line in open(data_file))
         self.num_samples = num_samples
-        seq_len = 256
+        seq_len = max_seq_len
         self.temp_dir = None
         self.working_dir = None
         if reduce_memory:
@@ -127,7 +130,7 @@ class PregeneratedDataset(Dataset):
                     break
                 line = line.strip()
                 example = [s.lstrip().strip() for s in line.split(sep)]
-                features = convert_example_to_features(example, tokenizer, seq_len, tokenizing=True)
+                features = convert_example_to_features(example, tokenizer, seq_len, no_ins_at_first = no_ins_at_first, id = i, tokenizing=True)
                 input_ids[i] = features.input_ids
                 segment_ids[i] = features.segment_ids
                 input_masks[i] = features.input_mask
@@ -455,6 +458,16 @@ def main():
                         help="reduce repetition (only for tokenwise)")
     parser.add_argument('--sep',
                          type=str, default=" ", help="token to seperate keywords")
+    parser.add_argument('--max_seq_length',
+                        type=int,
+                        default=256,
+                        help="max sequence length") 
+    parser.add_argument("--no_ins_at_first", 
+                        type=boolean_string, 
+                        default=False, 
+                        help="Do not insert at the begining of the text")
+
+                        
     args = parser.parse_args()
 
 
@@ -463,7 +476,7 @@ def main():
         args.output_dir = args.bert_model
 
     epoch_file = args.keyfile
-    args.max_seq_length = 256
+    # args.max_seq_length = 256
     
     # Setup CUDA, GPU & distributed training
     if args.local_rank == -1 or args.no_cuda:
@@ -507,10 +520,10 @@ def main():
 
     print(args)    
 
-    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.keyfile, tokenizer=tokenizer, sep=args.sep, num_data_epochs=1)
+    epoch_dataset = PregeneratedDataset(epoch=0, training_path=args.keyfile, tokenizer=tokenizer, max_seq_len = args.max_seq_length, sep=args.sep, no_ins_at_first = args.no_ins_at_first, num_data_epochs=1)
     epoch_sampler = SequentialSampler(epoch_dataset)
     generate_dataloader = DataLoader(epoch_dataset, sampler=epoch_sampler,batch_size=args.batch_size)
-    file_name = os.path.join(args.output_dir, f"{args.type}.txt")
+    file_name = os.path.join(args.output_dir, os.path.basename(args.keyfile)[:-3] + os.path.basename(args.bert_model) + f".{args.type}.txt")
     f = open(file_name, "w", 1)
 
 
