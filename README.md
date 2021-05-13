@@ -182,7 +182,10 @@ python inference.py \
 --bert_model $finetune_model_path \
 --output_dir $result_path 
 ```
-NOTE THAT the input keywords file will be tokenized by a BERT tokenizer. A less common word will likely be parsed into subwords, for example, `cheesecake` will be split into `cheese`, `##cake`. As a result the final generation may not contain the whole word `cheesecake`. This can be easily fixed by not letting the model to generate things before a subword token (start with `##`), however in the current version we haven't implemented such a feature.  
+
+The inference function and live demo now support phrases and short sentences as lexical constraints. When performing [inference](https://github.com/dreasysnail/POINTER#model-decoding), an additional "--sep" command can be added to specific the a user-specific separating token such as ";", to identify the boundries of the constraints. The default separator is white space " ". 
+
+NOTE THAT, if using default white space separator, the input keywords file will be tokenized by a BERT tokenizer. A less common word will likely be parsed into subwords, for example, `cheesecake` will be split into `cheese`, `##cake`. As a result the final generation may not contain the whole word `cheesecake`. 
 
 
 ## Citation
