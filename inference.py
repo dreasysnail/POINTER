@@ -428,7 +428,8 @@ def main():
     parser.add_argument("--type",
                         default="greedy",
                         type=str,
-                        help="greedy: greedy generation. sample: sampling")
+                        choices=['greedy','sampling'],
+                        help="greedy: greedy generation. sampling: top-k sampling")
     parser.add_argument('--noi_decay',
                         type=int,
                         default=1,
