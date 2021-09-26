@@ -69,6 +69,9 @@ Link to the data files can be downloaded as follows
 |----------------------|--------|
 | News| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/data/news/news_data.txt?sv=2019-10-10&st=2020-12-02T18%3A27%3A04Z&se=2030-12-03T18%3A27%3A00Z&sr=b&sp=r&sig=XfWYtYF8W8fFgbkJM1mrdLpb%2FoRJwQu5DTSaWrYv5yY%3D)  | 
 | Restaurant review| [\[link\]](https://yizzhang.blob.core.windows.net/insertiont/data/yelp/yelp_160000.txt?sv=2019-12-12&st=2021-02-18T21%3A09%3A43Z&se=2028-06-19T20%3A09%3A00Z&sr=b&sp=r&sig=BvDirR%2FWgReKvfu6wd3qHM99rJUJ4KErEWhA4QBH5aE%3D)  | 
+| Wiki data for pre-training| [\[link\]](https://github.com/ChunyuanLI/Optimus/blob/master/data/download_datasets.md)  | 
+
+
 
 
 ## POINTER model checkpoints 
